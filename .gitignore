@@ -1,0 +1,20 @@
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environments & Secrets
+.env
+venv/
+env/
+ENV/
+
+# Output files (optional - comment out if you want sample outputs committed)
+# output/
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
