@@ -1,17 +1,17 @@
 # 📈 SEC 10-K & Earnings Call Financial Analyst Agent
 
-An autonomous, production-grade AI Agent system built in Python that ingests SEC 10-K/10-Q filings and earnings call transcripts, extracts structured financial metrics, calculates YoY performance metrics, classifies Item 1A Risk Factors by severity, and generates an executive web dashboard.
+An autonomous, production-grade AI Agent system built in Python that ingests SEC 10-K/10-Q corporate filings and earnings transcripts, extracts structured financial metrics, calculates YoY performance changes, classifies Item 1A Risk Factors by severity, and generates an executive web dashboard with interactive **Chart.js** analytics.
 
 ---
 
 ## 🌟 Architecture & Engineering Highlights
 
-* **Structured Schema Validation**: Built with Pydantic models to enforce strict type definitions and prevent LLM output hallucinations or malformed JSON payloads.
-* **Autonomous Section Extraction**: Uses regex-assisted pattern matching to isolate Item 1 (Business), Item 1A (Risk Factors), and Item 7 (MD&A) prior to agent ingestion—minimizing token context windows and API costs.
-* **YoY Financial Metrics Math**: Automatically computes percentage growth rates, trend direction, and financial health scores for Revenue, Net Income, EPS, and Cash Flow.
-* **Risk Factor Matrix**: Categorizes unstructured risk text into Cybersecurity, Technology, Macroeconomic, and Regulatory categories with severity scoring (`HIGH`, `MEDIUM`, `LOW`).
-* **Glassmorphism Web Dashboard**: Generates an interactive HTML/CSS dashboard with KPI cards, risk badges, and financial guidance.
-* **Zero-Config Offline Mode**: Includes sample SEC 10-K filings out-of-the-box for instant local testing and CI/CD validation without requiring API keys.
+* **Dual-Engine AI Reasoning**: Integrates live **Anthropic Claude** structured output extraction with automatic fallback to an offline deterministic engine for zero-config testing.
+* **Structured Schema Validation**: Built with strict Pydantic models (`FinancialMetrics`, `RiskFactorCard`, `ExecutiveSummary`) to guarantee type contracts and prevent hallucinations.
+* **Context Window Optimization**: Uses regex-assisted pattern matching to isolate Item 1 (Business), Item 1A (Risk Factors), and Item 7 (MD&A) prior to agent ingestion — reducing token context consumption by **~85%**.
+* **YoY Financial Metrics Math**: Automatically computes percentage growth rates, trend direction, and financial health scores for Revenue, Operating Expenses, Net Income, EPS, and Cash Flow.
+* **Interactive Glassmorphism Dashboard**: Generates an executive HTML dashboard with Chart.js YoY trend bars and Risk Severity donut charts.
+* **Multi-Sector Sample Filings**: Includes pre-loaded 10-K filings across **Tech** (TechCorp), **Biotech** (HealthPlus), and **E-Commerce** (RetailHub).
 
 ---
 
@@ -32,29 +32,16 @@ An autonomous, production-grade AI Agent system built in Python that ingests SEC
                                                 ▼
                                   ┌───────────────────────────┐
                                   │ SECFinancialAnalystAgent  │
-                                  │  (Pydantic Schema Engine) │
+                                  │ (Claude / Heuristic Engine)│
                                   └─────────────┬─────────────┘
                                                 │
                                 ┌───────────────┴───────────────┐
                                 ▼                               ▼
                   ┌───────────────────────────┐   ┌───────────────────────────┐
-                  │    Executive Markdown     │   │ Glassmorphism HTML        │
+                  │    Executive Markdown     │   │   Chart.js Glassmorphic   │
                   │    Report (report.md)     │   │ Dashboard (dashboard.html)│
                   └───────────────────────────┘   └───────────────────────────┘
 ```
-
----
-
-## 💡 Key Design Decisions for Interview Reviewers
-
-1. **Why Pydantic Schemas?**  
-   Standard LLM outputs are probabilistic and can return malformed JSON. Using strict Pydantic data models (`FinancialMetrics`, `RiskFactorCard`, `ExecutiveSummary`) guarantees that downstream API consumers or UI dashboards receive validated, strongly-typed objects.
-
-2. **Cost & Context Window Optimization**:  
-   Rather than sending a full 100-page 10-K document directly to an LLM prompt, the `SECParser` extracts only relevant items (Item 1A Risk Factors and Item 7 MD&A), reducing prompt token consumption by **~85%**.
-
-3. **Production Testability**:  
-   Includes a full `pytest` suite testing parser regex, schema validation, and report generation, ensuring pipeline changes never break downstream contracts.
 
 ---
 
@@ -71,13 +58,26 @@ cd sec-financial-analyst-agent
 pip install -r requirements.txt
 ```
 
-### 3. Run the Analyst Agent & Launch Dashboard
-```bash
-python app.py
+### 3. (Optional) Configure Live AI Model
+Copy `.env.example` to `.env` to enable live Claude analysis:
+```env
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+ANTHROPIC_MODEL=claude-3-7-sonnet-20250219
 ```
-*This automatically processes the sample SEC 10-K filing, generates the analysis reports in `output/`, and opens the interactive Web Dashboard in your browser at `http://localhost:8000/dashboard.html`!*
+*(If no API key is provided, the agent runs seamlessly in zero-config offline mode).*
 
-### 4. Run Automated Unit Tests
+### 4. Run the Analyst Agent & Launch Dashboard
+```bash
+# Run on TechCorp (Default)
+python app.py
+
+# Or choose another sector:
+python app.py --sample healthplus
+python app.py --sample retailhub
+```
+*This automatically analyzes the filing, generates reports in `output/`, and launches the interactive dashboard at `http://localhost:8000/dashboard.html`!*
+
+### 5. Run Automated Unit Tests
 ```bash
 python -m pytest tests/
 ```
@@ -87,27 +87,26 @@ python -m pytest tests/
 ## 📂 Repository Structure
 
 ```
-sec_financial_analyst_agent/
+sec-financial-analyst-agent/
 ├── data/
-│   └── samples/                  # Pre-loaded sample SEC 10-K filing (TechCorp Inc.)
+│   └── samples/                  # Sample 10-K filings (TechCorp, HealthPlus, RetailHub)
 ├── src/
 │   ├── sec_parser.py             # Section extractor (Item 1, Item 1A, Item 7 MD&A)
 │   ├── schemas.py                # Pydantic schema validation models
-│   ├── financial_agent.py        # Core Financial Analyst AI Agent logic
-│   └── report_generator.py       # Markdown & HTML Dashboard Generator
+│   ├── financial_agent.py        # Core Financial Analyst AI Agent logic (Dual-engine)
+│   └── report_generator.py       # Markdown & Chart.js Dashboard Generator
 ├── tests/
 │   └── test_agent.py             # Pytest automated test suite
 ├── output/                       # Generated Markdown & HTML Dashboard outputs
 ├── app.py                        # CLI & Local HTTP Web Server
 ├── requirements.txt              # Project dependencies
-└── README.md                     # Technical architecture & portfolio overview
+├── AGENTS.md                     # Antigravity Orchestration Guide
+├── LICENSE                       # MIT License
+└── README.md                     # Technical architecture overview
 ```
 
 ---
 
-## 📊 Example Dashboard Output
+## 📄 License
 
-The agent produces an executive report featuring:
-* **Financial Health Score**: `9.8/10` (Strong Bullish)
-* **Core YoY Metrics Table**: Revenue (`+22.8%`), Net Income (`+48.8%`), EPS (`+48.1%`)
-* **Risk Severity Matrix**: Cyber Threats (`HIGH`), AI Disruption (`MEDIUM`), FX Volatility (`MEDIUM`)
+This project is licensed under the [MIT License](LICENSE).

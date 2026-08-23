@@ -1,0 +1,30 @@
+UNITED STATES SECURITIES AND EXCHANGE COMMISSION
+Washington, D.C. 20549
+FORM 10-K
+
+ANNUAL REPORT PURSUANT TO SECTION 13 OR 15(d) OF THE SECURITIES EXCHANGE ACT OF 1934
+For the Fiscal Year Ended December 31, 2025
+
+RETAILHUB GLOBAL INC.
+(Exact name of registrant as specified in its charter)
+
+ITEM 1. BUSINESS
+RetailHub Global Inc. operates a global omnichannel consumer goods marketplace, automated fulfillment network, and subscription loyalty membership platform serving over 45 million active households across North America and Europe.
+
+ITEM 1A. RISK FACTORS
+Key operational and market risks facing our business include:
+1. Consumer Spending Contraction & Inflation: Persistent macroeconomic inflation may reduce discretionary household spending across non-essential consumer categories.
+2. Supply Chain & Freight Logistics Volatility: Global shipping lane congestion and fuel surcharges may compress gross merchandise margins.
+3. Cybersecurity Threats: High volume of e-commerce customer transaction records creates constant vulnerability to cyber intrusions and payment gateway breaches.
+4. Intense E-Commerce Competition: Price competition from multinational direct-to-consumer and retail mega-platforms.
+
+ITEM 7. MANAGEMENT'S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS (MD&A)
+Financial Results for FY25 compared to FY24:
+- Revenue: Net marketplace revenue and fulfillment services generated $3,250.0M in FY25 vs $2,840.0M in FY24 (+14.4% YoY).
+- Operating Expenses: Warehouse robotics automation and shipping efficiency kept operating expenses at $2,420.0M in FY25 vs $2,210.0M in FY24.
+- Net Income: Net Income reached $460.0M in FY25 vs $340.0M in FY24 (+35.3% YoY).
+- Diluted EPS: Diluted EPS reached $4.20 vs $3.15 in FY24.
+- Operating Cash Flow: Operating Cash Flow rose to $680.0M in FY25 vs $520.0M in FY24.
+
+Management Guidance:
+Management forecasts FY26 net sales growth of 12% to 15%, fueled by automated micro-fulfillment centers and high-margin retail media advertising network expansion.

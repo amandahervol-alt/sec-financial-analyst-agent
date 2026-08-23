@@ -1,0 +1,30 @@
+UNITED STATES SECURITIES AND EXCHANGE COMMISSION
+Washington, D.C. 20549
+FORM 10-K
+
+ANNUAL REPORT PURSUANT TO SECTION 13 OR 15(d) OF THE SECURITIES EXCHANGE ACT OF 1934
+For the Fiscal Year Ended December 31, 2025
+
+HEALTHPLUS THERAPEUTICS INC.
+(Exact name of registrant as specified in its charter)
+
+ITEM 1. BUSINESS
+HealthPlus Therapeutics Inc. is a clinical-stage biotechnology company focused on developing novel immuno-oncology therapies and precision gene-editing treatments for rare metabolic diseases. Our commercial portfolio includes OncoTarget-4 and specialized metabolic enzyme replacements.
+
+ITEM 1A. RISK FACTORS
+Our business, financial condition, and results of operations are subject to numerous risks, including the following:
+1. Clinical Trial Failures: Clinical development involves high risk and long timelines. If our Phase 3 oncology candidates fail to show statistically significant efficacy, commercialization will be halted.
+2. FDA Regulatory Approvals: Delay or denial of Biologics License Applications (BLAs) from the U.S. FDA or EMA would severely impede revenue potential.
+3. Patent Expirations & Biosimilar Competition: Expiration of key substance patents on early generation therapies may expose us to aggressive generic competition.
+4. Supply Chain & Biomanufacturing Disruption: Dependency on single-source sterile contract manufacturing organizations (CMOs) for specialized biologics.
+
+ITEM 7. MANAGEMENT'S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS (MD&A)
+The following discussion highlights our financial performance for the fiscal year ended December 31, 2025 compared to 2024:
+- Revenue: Commercial product sales and partnership licensing revenues reached $680.0M in FY25 vs $510.0M in FY24, representing strong 33.3% YoY expansion.
+- Operating Expenses: Heavy Phase 3 R&D investment drove operating expenses to $490.0M in FY25 vs $395.0M in FY24.
+- Net Income: GAAP Net Income surged to $145.0M in FY25 vs $82.0M in FY24, fueled by European commercial launch milestones.
+- Diluted EPS: Diluted earnings per share was $2.15 vs $1.25 in FY24.
+- Operating Cash Flow: Operating cash flow generated $210.0M in FY25 vs $130.0M in FY24, maintaining a healthy cash runway of over 36 months.
+
+Management Guidance:
+For FY26, management projects top-line product revenues between $800M and $850M, anticipating preliminary top-line readout for the Phase 3 rare disease trial in Q3 FY26.

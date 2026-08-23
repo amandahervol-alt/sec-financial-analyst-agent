@@ -3,134 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEC 10-K Executive Financial Analysis — TechCorp Solutions Inc.</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>SEC 10-K Executive Financial Analysis — HealthPlus Therapeutics Inc.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg: #0b0f19;
-            --card-bg: rgba(22, 30, 49, 0.7);
-            --border: rgba(255, 255, 255, 0.08);
+            --bg: #070a13;
+            --card-bg: rgba(18, 24, 40, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
             --accent-blue: #38bdf8;
-            --accent-green: #4ade80;
-            --accent-red: #f87171;
-            --accent-purple: #c084fc;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
+            --accent-green: #10b981;
+            --accent-purple: #a855f7;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', system-ui, sans-serif;
             background: var(--bg);
             color: var(--text-main);
-            padding: 2rem;
+            padding: 2.5rem 1.5rem;
             line-height: 1.6;
             background-image: 
-                radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.12) 0%, transparent 40%),
-                radial-gradient(circle at 85% 75%, rgba(192, 132, 252, 0.12) 0%, transparent 40%);
+                radial-gradient(circle at 10% 15%, rgba(6, 182, 212, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(168, 85, 247, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+            background-attachment: fixed;
             min-height: 100vh;
         }
 
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1320px; margin: 0 auto; }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.75rem;
+            border-bottom: 1px solid var(--card-border);
+            flex-wrap: wrap;
+            gap: 1.5rem;
         }
 
-        h1 { font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 700; color: #fff; }
-        .timestamp { color: var(--text-muted); font-size: 0.9rem; }
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
 
+        .timestamp { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+        .health-badge-container {
+            text-align: right;
+            background: rgba(18, 24, 40, 0.6);
+            border: 1px solid var(--card-border);
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .health-score {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            line-height: 1.1;
+        }
+
+        /* KPI Grid */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
         }
 
         .card {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
             border-radius: 16px;
             padding: 1.5rem;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
-        .metric-title { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-        .metric-val { font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 700; margin: 0.4rem 0; }
-        .metric-change { font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.6rem; border-radius: 20px; }
-        .badge-positive { background: rgba(74, 222, 128, 0.15); color: var(--accent-green); }
-        .badge-negative { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .metric-title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        .metric-val { font-family: 'Outfit', sans-serif; font-size: 2.25rem; font-weight: 700; margin: 0.4rem 0; color: #fff; }
+        .metric-change { font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.6rem; border-radius: 20px; }
+        .badge-positive { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-negative { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* Chart Section */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .charts-row { grid-template-columns: 1fr; }
+        }
 
         .section-title {
             font-family: 'Outfit', sans-serif;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
+            font-weight: 700;
             margin-bottom: 1.2rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        table {
+        .chart-container {
+            position: relative;
+            height: 280px;
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
         }
 
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
+        /* Executive Summary */
+        .exec-card {
+            margin-bottom: 2rem;
+            background: linear-gradient(180deg, rgba(24, 33, 54, 0.8) 0%, rgba(18, 24, 40, 0.8) 100%);
+            border-color: rgba(56, 189, 248, 0.25);
         }
 
-        th { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .bullet-list { margin-left: 1.25rem; margin-top: 0.75rem; }
+        .bullet-list li { margin-bottom: 0.45rem; color: #e2e8f0; font-size: 0.95rem; }
 
+        /* Risk Grid */
         .risk-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
             gap: 1.5rem;
         }
 
         .risk-card {
             background: var(--card-bg);
-            border: 1px solid var(--border);
+            border: 1px solid var(--card-border);
             border-left: 4px solid var(--accent-blue);
             border-radius: 12px;
-            padding: 1.25rem;
+            padding: 1.35rem;
         }
 
         .risk-card.severity-HIGH { border-left-color: var(--accent-red); }
-        .risk-card.severity-MEDIUM { border-left-color: #fbbf24; }
+        .risk-card.severity-MEDIUM { border-left-color: var(--accent-yellow); }
+        .risk-card.severity-LOW { border-left-color: var(--accent-green); }
+
+        .risk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
 
         .severity-tag {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
-            padding: 0.2rem 0.5rem;
+            padding: 0.2rem 0.55rem;
             border-radius: 4px;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        .severity-HIGH .severity-tag { background: rgba(248, 113, 113, 0.2); color: var(--accent-red); }
-        .severity-MEDIUM .severity-tag { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
-
-        .bullet-list { margin-left: 1.2rem; margin-top: 0.5rem; }
-        .bullet-list li { margin-bottom: 0.4rem; color: #e5e7eb; }
+        .severity-HIGH .severity-tag { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .severity-MEDIUM .severity-tag { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .severity-LOW .severity-tag { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <div>
-                <h1>SEC 10-K Executive Financial Analysis — TechCorp Solutions Inc.</h1>
-                <div class="timestamp">Generated by Autonomous SEC Financial Analyst Agent • 2026-08-15 09:45:44</div>
+                <h1 class="brand-title">SEC 10-K Executive Financial Analysis — HealthPlus Therapeutics Inc.</h1>
+                <div class="timestamp">Autonomous SEC Financial Analyst Agent • FY2025 10-K Audit • Generated 2026-08-22 20:28:18</div>
             </div>
-            <div style="text-align: right;">
-                <span style="font-size: 0.85rem; color: var(--text-muted);">Health Score</span>
-                <div style="font-family: 'Outfit'; font-size: 2rem; font-weight: 700; color: var(--accent-blue);">9.8/10</div>
+            <div class="health-badge-container">
+                <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Financial Health Score</span>
+                <div class="health-score">10.0<span style="font-size: 1.1rem; color: var(--text-dim);">/10</span></div>
             </div>
         </header>
 
@@ -138,86 +202,190 @@
         <div class="dashboard-grid">
             <div class="card">
                 <div class="metric-title">Total Revenue</div>
-                <div class="metric-val">$1450.0M</div>
-                <div class="metric-change badge-positive">▲ +22.8% YoY</div>
+                <div class="metric-val">$680.0M</div>
+                <div class="metric-change badge-positive">
+                    ▲ +33.3% YoY
+                </div>
             </div>
             <div class="card">
                 <div class="metric-title">Net Income</div>
-                <div class="metric-val">$320.0M</div>
-                <div class="metric-change badge-positive">▲ +48.8% YoY</div>
+                <div class="metric-val">$145.0M</div>
+                <div class="metric-change badge-positive">
+                    ▲ +76.8% YoY
+                </div>
             </div>
             <div class="card">
                 <div class="metric-title">Diluted EPS</div>
-                <div class="metric-val">$3.85</div>
-                <div class="metric-change badge-positive">▲ +48.1% YoY</div>
+                <div class="metric-val">$2.15</div>
+                <div class="metric-change badge-positive">
+                    ▲ +72.0% YoY
+                </div>
             </div>
             <div class="card">
                 <div class="metric-title">Operating Cash Flow</div>
-                <div class="metric-val">$410.0M</div>
-                <div class="metric-change badge-positive">▲ +41.4% YoY</div>
+                <div class="metric-val">$210.0M</div>
+                <div class="metric-change badge-positive">
+                    ▲ +61.5% YoY
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Charts Row -->
+        <div class="charts-row">
+            <div class="card">
+                <div class="section-title">📊 Financial Performance Comparison (YoY in $M)</div>
+                <div class="chart-container">
+                    <canvas id="financialsChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="section-title">⚠️ Item 1A Risk Factor Matrix</div>
+                <div class="chart-container">
+                    <canvas id="riskChart"></canvas>
+                </div>
             </div>
         </div>
 
         <!-- Executive Summary -->
-        <div class="card" style="margin-bottom: 2.5rem;">
-            <div class="section-title">💡 Executive Summary & Growth Guidance</div>
-            <p><strong>Sentiment:</strong> <span style="color: var(--accent-green); font-weight: 600;">Strong Bullish</span></p>
-            <p style="margin-top: 0.5rem;"><strong>Management Guidance:</strong> Management projects continued 18%-21% top-line growth in FY26 driven by enterprise AI adoption and operational margin expansion.</p>
+        <div class="card exec-card">
+            <div class="section-title">💡 Executive Summary & Strategic Guidance</div>
+            <p><strong>Analyst Sentiment:</strong> <span style="color: var(--accent-green); font-weight: 700;">Strong Bullish</span></p>
+            <p style="margin-top: 0.5rem;"><strong>Management Guidance:</strong> Management projects continued solid performance in FY2026 driven by operational execution and core market expansion.</p>
             <div style="margin-top: 1rem;">
                 <strong>Key Growth Drivers:</strong>
                 <ul class="bullet-list">
                     
-                    <li>Subscription Revenue Growth: Revenue reached $1450.0M (+22.8% YoY)</li>
+                    <li>Revenue Performance: Total Revenue reached $680.0M (+33.3% YoY)</li>
                     
-                    <li>Net Income Acceleration: Net Income grew +48.8% YoY to $320.0M</li>
+                    <li>Profitability: Net Income at $145.0M (+76.8% YoY)</li>
                     
-                    <li>Strong Cash Generation: Operating cash flow reached $410.0M</li>
+                    <li>Cash Generation: Operating cash flow generated $210.0M</li>
                     
                 </ul>
             </div>
         </div>
 
-        <!-- Risk Factors -->
-        <div class="section-title">⚠️ Item 1A Risk Factor Classification</div>
+        <!-- Risk Factor Cards -->
+        <div class="section-title">🛡️ Detailed Item 1A Risk Assessment</div>
         <div class="risk-grid">
             
             <div class="risk-card severity-HIGH">
-                <div style="display: flex; justify-space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <span style="font-weight: 600; color: #fff;">Cybersecurity Threats and Data Breaches</span>
+                <div class="risk-header">
+                    <span style="font-weight: 700; color: #fff; font-size: 1.05rem;">Clinical Trial Failures</span>
                     <span class="severity-tag">HIGH</span>
                 </div>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Category:</strong> Cybersecurity</p>
-                <p style="font-size: 0.9rem;">As a provider of enterprise cloud infrastructure, we are subject to sophisticated cyberattacks, ransomware, and unauthorized data access. Any material breach could lead to severe r...</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Category:</strong> AI & Technology</p>
+                <p style="font-size: 0.92rem; color: #cbd5e1; margin-bottom: 0.6rem;">Clinical development involves high risk and long timelines. If our Phase 3 oncology candidates fail to show statistically significant efficacy, commercialization will be halted.</p>
+                
+                <p style="font-size: 0.85rem; color: var(--accent-cyan);"><strong>Mitigation:</strong> Active monitoring and strategic risk allocation.</p>
+                
+            </div>
+            
+            <div class="risk-card severity-HIGH">
+                <div class="risk-header">
+                    <span style="font-weight: 700; color: #fff; font-size: 1.05rem;">FDA Regulatory Approvals</span>
+                    <span class="severity-tag">HIGH</span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Category:</strong> Regulatory</p>
+                <p style="font-size: 0.92rem; color: #cbd5e1; margin-bottom: 0.6rem;">Delay or denial of Biologics License Applications (BLAs) from the U.S. FDA or EMA would severely impede revenue potential.</p>
+                
+                <p style="font-size: 0.85rem; color: var(--accent-cyan);"><strong>Mitigation:</strong> Active monitoring and strategic risk allocation.</p>
+                
             </div>
             
             <div class="risk-card severity-MEDIUM">
-                <div style="display: flex; justify-space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <span style="font-weight: 600; color: #fff;">Rapid AI Technological Disruption</span>
+                <div class="risk-header">
+                    <span style="font-weight: 700; color: #fff; font-size: 1.05rem;">Patent Expirations & Biosimilar Competition</span>
                     <span class="severity-tag">MEDIUM</span>
                 </div>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Category:</strong> AI & Technology</p>
-                <p style="font-size: 0.9rem;">The rapid advancement of generative AI and open-source foundation models may lower barriers to entry, enabling new competitors to offer lower-cost alternatives to our proprietary c...</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Category:</strong> General</p>
+                <p style="font-size: 0.92rem; color: #cbd5e1; margin-bottom: 0.6rem;">Expiration of key substance patents on early generation therapies may expose us to aggressive generic competition.</p>
+                
+                <p style="font-size: 0.85rem; color: var(--accent-cyan);"><strong>Mitigation:</strong> Active monitoring and strategic risk allocation.</p>
+                
             </div>
             
             <div class="risk-card severity-MEDIUM">
-                <div style="display: flex; justify-space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <span style="font-weight: 600; color: #fff;">Foreign Exchange Volatility and Global Macroeconomic Headwinds</span>
+                <div class="risk-header">
+                    <span style="font-weight: 700; color: #fff; font-size: 1.05rem;">Supply Chain & Biomanufacturing Disruption</span>
                     <span class="severity-tag">MEDIUM</span>
                 </div>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Category:</strong> Macroeconomic</p>
-                <p style="font-size: 0.9rem;">Approximately 42% of our fiscal 2025 revenue was generated outside the United States. Fluctuations in the USD against EUR and JPY, alongside high interest rates, have slowed procur...</p>
-            </div>
-            
-            <div class="risk-card severity-MEDIUM">
-                <div style="display: flex; justify-space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <span style="font-weight: 600; color: #fff;">Regulatory Compliance and Data Privacy Constraints</span>
-                    <span class="severity-tag">MEDIUM</span>
-                </div>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Category:</strong> Cybersecurity</p>
-                <p style="font-size: 0.9rem;">Emerging AI regulations across the EU (AI Act) and US federal agencies require strict auditing, model transparency, and bias prevention. Compliance costs may increase operating exp...</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;"><strong>Category:</strong> AI & Technology</p>
+                <p style="font-size: 0.92rem; color: #cbd5e1; margin-bottom: 0.6rem;">Dependency on single-source sterile contract manufacturing organizations (CMOs) for specialized biologics.</p>
+                
+                <p style="font-size: 0.85rem; color: var(--accent-cyan);"><strong>Mitigation:</strong> Active monitoring and strategic risk allocation.</p>
+                
             </div>
             
         </div>
     </div>
+
+    <!-- Chart.js Setup Scripts -->
+    <script>
+        // Financials YoY Bar Chart
+        const ctxFin = document.getElementById('financialsChart').getContext('2d');
+        new Chart(ctxFin, {
+            type: 'bar',
+            data: {
+                labels: ['Revenue', 'Operating Expenses', 'Net Income', 'Operating Cash Flow'],
+                datasets: [
+                    {
+                        label: 'FY2024 ($M)',
+                        data: [510.0, 395.0, 82.0, 130.0],
+                        backgroundColor: 'rgba(148, 163, 184, 0.4)',
+                        borderColor: 'rgba(148, 163, 184, 0.8)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'FY2025 ($M)',
+                        data: [680.0, 490.0, 145.0, 210.0],
+                        backgroundColor: 'rgba(56, 189, 248, 0.8)',
+                        borderColor: 'rgba(56, 189, 248, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#94a3b8', font: { family: 'Inter' } } }
+                },
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
+                }
+            }
+        });
+
+        // Risk Factor Donut Chart
+        const ctxRisk = document.getElementById('riskChart').getContext('2d');
+        new Chart(ctxRisk, {
+            type: 'doughnut',
+            data: {
+                labels: ['High Severity', 'Medium Severity', 'Low Severity'],
+                datasets: [{
+                    data: [2, 2, 0],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.85)',
+                        'rgba(245, 158, 11, 0.85)',
+                        'rgba(16, 185, 129, 0.85)'
+                    ],
+                    borderColor: 'rgba(18, 24, 40, 1)',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#94a3b8', font: { family: 'Inter' } } }
+                },
+                cutout: '65%'
+            }
+        });
+    </script>
 </body>
 </html>
