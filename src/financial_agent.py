@@ -93,7 +93,6 @@ class SECFinancialAnalystAgent:
         response = client.messages.create(
             model=self.model_name,
             max_tokens=3000,
-            temperature=0.1,
             system=system_prompt,
             messages=[{"role": "user", "content": user_prompt}]
         )
