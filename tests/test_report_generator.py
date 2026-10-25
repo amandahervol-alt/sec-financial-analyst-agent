@@ -1,4 +1,5 @@
 import re
+from html import escape
 
 import pytest
 
@@ -64,3 +65,44 @@ def test_html_badge_direction():
     html = ReportGenerator(report).generate_html()
     assert "▼ -10.0% YoY" in html
     assert "badge-negative" in html
+
+
+def _report_with_risk(**risk_fields):
+    agent = SECFinancialAnalystAgent(api_key="")
+    report = agent.analyze(COMPANIES["techcorp"], sample_sections("techcorp"))
+    card = report.risk_factors[0].model_copy(update=risk_fields)
+    return report.model_copy(update={"risk_factors": [card, *report.risk_factors[1:]]})
+
+
+def test_html_escapes_filing_text():
+    report = _report_with_risk(title="<script>x()</script>", summary="<img src=x onerror=alert(1)>")
+    html = ReportGenerator(report).generate_html()
+    assert "<script>x()</script>" not in html
+    assert "&lt;script&gt;x()&lt;/script&gt;" in html
+    assert "<img src=x" not in html
+
+
+def test_html_escapes_claude_provided_severity_and_company():
+    report = _report_with_risk(severity='HIGH" onmouseover="x()')
+    report = report.model_copy(update={"report_title": "Acme </title><script>x()</script>"})
+    html = ReportGenerator(report).generate_html()
+    assert '" onmouseover="' not in html
+    assert "</title><script>" not in html
+
+
+def test_html_escapes_ampersands_in_sample_text(reports):
+    report = reports["retailhub"]
+    html = ReportGenerator(report).generate_html()
+    for card in report.risk_factors:
+        assert escape(card.title) in html
+
+
+def test_chart_scripts_still_receive_raw_numbers(reports):
+    html = ReportGenerator(reports["techcorp"]).generate_html()
+    assert "data: [1181.0, 760.0, 215.0, 290.0]" in html
+    assert "data: [1450.0, 890.0, 320.0, 410.0]" in html
+
+
+def test_markdown_keeps_text_unescaped():
+    report = _report_with_risk(title="M&A Integration <Risk>")
+    assert "### [RISK-01] M&A Integration <Risk>" in ReportGenerator(report).generate_markdown()

@@ -419,7 +419,8 @@ class ReportGenerator:
 </body>
 </html>
 """
-        template = Template(html_template)
+        # Filing text, company names and Claude output are untrusted: escape everything rendered into the page.
+        template = Template(html_template, autoescape=True)
         return template.render(
             r=r,
             m=m,
