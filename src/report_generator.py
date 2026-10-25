@@ -35,11 +35,11 @@ class ReportGenerator:
 
 | Metric | FY{m.prior_fiscal_year} | FY{m.fiscal_year} | YoY Change (%) | Trend |
 | :--- | :--- | :--- | :--- | :--- |
-| **Revenue** | ${m.revenue.prior_year_val}M | ${m.revenue.current_year_val}M | `+{m.revenue.yoy_change_pct}%` | {m.revenue.trend} |
-| **Operating Expenses** | ${m.operating_expenses.prior_year_val}M | ${m.operating_expenses.current_year_val}M | `+{m.operating_expenses.yoy_change_pct}%` | {m.operating_expenses.trend} |
-| **Net Income** | ${m.net_income.prior_year_val}M | ${m.net_income.current_year_val}M | `+{m.net_income.yoy_change_pct}%` | {m.net_income.trend} |
-| **Diluted EPS** | ${m.eps.prior_year_val} | ${m.eps.current_year_val} | `+{m.eps.yoy_change_pct}%` | {m.eps.trend} |
-| **Operating Cash Flow** | ${m.operating_cash_flow.prior_year_val}M | ${m.operating_cash_flow.current_year_val}M | `+{m.operating_cash_flow.yoy_change_pct}%` | {m.operating_cash_flow.trend} |
+| **Revenue** | {m.revenue.prior_display} | {m.revenue.current_display} | `{m.revenue.change_display}` | {m.revenue.trend} |
+| **Operating Expenses** | {m.operating_expenses.prior_display} | {m.operating_expenses.current_display} | `{m.operating_expenses.change_display}` | {m.operating_expenses.trend} |
+| **Net Income** | {m.net_income.prior_display} | {m.net_income.current_display} | `{m.net_income.change_display}` | {m.net_income.trend} |
+| **Diluted EPS** | {m.eps.prior_display} | {m.eps.current_display} | `{m.eps.change_display}` | {m.eps.trend} |
+| **Operating Cash Flow** | {m.operating_cash_flow.prior_display} | {m.operating_cash_flow.current_display} | `{m.operating_cash_flow.change_display}` | {m.operating_cash_flow.trend} |
 
 ---
 
@@ -174,6 +174,7 @@ class ReportGenerator:
         .metric-val { font-family: 'Outfit', sans-serif; font-size: 2.25rem; font-weight: 700; margin: 0.4rem 0; color: #fff; }
         .metric-change { font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.6rem; border-radius: 20px; }
         .badge-positive { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-neutral { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
         .badge-negative { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); }
 
         /* Chart Section */
@@ -270,30 +271,30 @@ class ReportGenerator:
         <div class="dashboard-grid">
             <div class="card">
                 <div class="metric-title">Total Revenue</div>
-                <div class="metric-val">${{ m.revenue.current_year_val }}M</div>
-                <div class="metric-change {% if m.revenue.yoy_change_pct >= 0 %}badge-positive{% else %}badge-negative{% endif %}">
-                    {% if m.revenue.yoy_change_pct >= 0 %}▲ +{% else %}▼ {% endif %}{{ m.revenue.yoy_change_pct }}% YoY
+                <div class="metric-val">{{ m.revenue.current_display }}</div>
+                <div class="metric-change {% if m.revenue.yoy_change_pct is none %}badge-neutral{% elif m.revenue.yoy_change_pct >= 0 %}badge-positive{% else %}badge-negative{% endif %}">
+                    {% if m.revenue.yoy_change_pct is none %}Not reported{% else %}{% if m.revenue.yoy_change_pct >= 0 %}▲ {% else %}▼ {% endif %}{{ m.revenue.change_display }} YoY{% endif %}
                 </div>
             </div>
             <div class="card">
                 <div class="metric-title">Net Income</div>
-                <div class="metric-val">${{ m.net_income.current_year_val }}M</div>
-                <div class="metric-change {% if m.net_income.yoy_change_pct >= 0 %}badge-positive{% else %}badge-negative{% endif %}">
-                    {% if m.net_income.yoy_change_pct >= 0 %}▲ +{% else %}▼ {% endif %}{{ m.net_income.yoy_change_pct }}% YoY
+                <div class="metric-val">{{ m.net_income.current_display }}</div>
+                <div class="metric-change {% if m.net_income.yoy_change_pct is none %}badge-neutral{% elif m.net_income.yoy_change_pct >= 0 %}badge-positive{% else %}badge-negative{% endif %}">
+                    {% if m.net_income.yoy_change_pct is none %}Not reported{% else %}{% if m.net_income.yoy_change_pct >= 0 %}▲ {% else %}▼ {% endif %}{{ m.net_income.change_display }} YoY{% endif %}
                 </div>
             </div>
             <div class="card">
                 <div class="metric-title">Diluted EPS</div>
-                <div class="metric-val">${{ m.eps.current_year_val }}</div>
-                <div class="metric-change {% if m.eps.yoy_change_pct >= 0 %}badge-positive{% else %}badge-negative{% endif %}">
-                    {% if m.eps.yoy_change_pct >= 0 %}▲ +{% else %}▼ {% endif %}{{ m.eps.yoy_change_pct }}% YoY
+                <div class="metric-val">{{ m.eps.current_display }}</div>
+                <div class="metric-change {% if m.eps.yoy_change_pct is none %}badge-neutral{% elif m.eps.yoy_change_pct >= 0 %}badge-positive{% else %}badge-negative{% endif %}">
+                    {% if m.eps.yoy_change_pct is none %}Not reported{% else %}{% if m.eps.yoy_change_pct >= 0 %}▲ {% else %}▼ {% endif %}{{ m.eps.change_display }} YoY{% endif %}
                 </div>
             </div>
             <div class="card">
                 <div class="metric-title">Operating Cash Flow</div>
-                <div class="metric-val">${{ m.operating_cash_flow.current_year_val }}M</div>
-                <div class="metric-change {% if m.operating_cash_flow.yoy_change_pct >= 0 %}badge-positive{% else %}badge-negative{% endif %}">
-                    {% if m.operating_cash_flow.yoy_change_pct >= 0 %}▲ +{% else %}▼ {% endif %}{{ m.operating_cash_flow.yoy_change_pct }}% YoY
+                <div class="metric-val">{{ m.operating_cash_flow.current_display }}</div>
+                <div class="metric-change {% if m.operating_cash_flow.yoy_change_pct is none %}badge-neutral{% elif m.operating_cash_flow.yoy_change_pct >= 0 %}badge-positive{% else %}badge-negative{% endif %}">
+                    {% if m.operating_cash_flow.yoy_change_pct is none %}Not reported{% else %}{% if m.operating_cash_flow.yoy_change_pct >= 0 %}▲ {% else %}▼ {% endif %}{{ m.operating_cash_flow.change_display }} YoY{% endif %}
                 </div>
             </div>
         </div>
@@ -359,7 +360,7 @@ class ReportGenerator:
                 datasets: [
                     {
                         label: 'FY{{ m.prior_fiscal_year }} ($M)',
-                        data: [{{ m.revenue.prior_year_val }}, {{ m.operating_expenses.prior_year_val }}, {{ m.net_income.prior_year_val }}, {{ m.operating_cash_flow.prior_year_val }}],
+                        data: [{{ m.revenue.chart_prior }}, {{ m.operating_expenses.chart_prior }}, {{ m.net_income.chart_prior }}, {{ m.operating_cash_flow.chart_prior }}],
                         backgroundColor: 'rgba(148, 163, 184, 0.4)',
                         borderColor: 'rgba(148, 163, 184, 0.8)',
                         borderWidth: 1,
@@ -367,7 +368,7 @@ class ReportGenerator:
                     },
                     {
                         label: 'FY{{ m.fiscal_year }} ($M)',
-                        data: [{{ m.revenue.current_year_val }}, {{ m.operating_expenses.current_year_val }}, {{ m.net_income.current_year_val }}, {{ m.operating_cash_flow.current_year_val }}],
+                        data: [{{ m.revenue.chart_current }}, {{ m.operating_expenses.chart_current }}, {{ m.net_income.chart_current }}, {{ m.operating_cash_flow.chart_current }}],
                         backgroundColor: 'rgba(56, 189, 248, 0.8)',
                         borderColor: 'rgba(56, 189, 248, 1)',
                         borderWidth: 1,

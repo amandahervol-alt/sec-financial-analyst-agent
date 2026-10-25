@@ -65,8 +65,9 @@ def run_pipeline(sample_file: str, company_name: str, serve: bool = True):
     print(f"✅ Analysis Complete for {company_name}")
     print(f"============================================================")
     print(f"[+] Health Score:     {report.executive_summary.overall_health_score}/10 ({report.executive_summary.sentiment_label})")
-    print(f"[+] Revenue (YoY):    ${report.metrics.revenue.current_year_val}M ({'+' if report.metrics.revenue.yoy_change_pct > 0 else ''}{report.metrics.revenue.yoy_change_pct}%)")
-    print(f"[+] Net Income (YoY): ${report.metrics.net_income.current_year_val}M ({'+' if report.metrics.net_income.yoy_change_pct > 0 else ''}{report.metrics.net_income.yoy_change_pct}%)")
+    rev, net = report.metrics.revenue, report.metrics.net_income
+    print(f"[+] Revenue (YoY):    {rev.current_display} ({rev.change_display})")
+    print(f"[+] Net Income (YoY): {net.current_display} ({net.change_display})")
     print(f"[+] Risk Factors:     {len(report.risk_factors)} identified and ranked")
     print(f"[+] Markdown Report:  {md_file.resolve()}")
     print(f"[+] HTML Dashboard:   {html_file.resolve()}")

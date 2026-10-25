@@ -75,3 +75,41 @@ def test_api_key_falls_back_through_env_vars(monkeypatch):
     assert SECFinancialAnalystAgent().api_key == "g-key"
     monkeypatch.setenv("ANTHROPIC_API_KEY", "a-key")
     assert SECFinancialAnalystAgent().api_key == "a-key"
+
+
+def test_reads_first_text_block_after_thinking(fake_anthropic):
+    fake_anthropic.messages.create.return_value = SimpleNamespace(content=[
+        SimpleNamespace(type="thinking", thinking="let me look at the MD&A"),
+        SimpleNamespace(type="text", text=json.dumps(VALID_REPORT)),
+    ])
+    report = SECFinancialAnalystAgent(api_key="sk-test").analyze("Acme", sample_sections("techcorp"))
+    assert report.metrics.revenue.current_year_val == 2.0  # Claude's figure, not the heuristic 1450
+
+
+def test_no_text_block_falls_back(fake_anthropic):
+    fake_anthropic.messages.create.return_value = SimpleNamespace(content=[SimpleNamespace(type="thinking", thinking="...")])
+    report = SECFinancialAnalystAgent(api_key="sk-test").analyze("TechCorp", sample_sections("techcorp"))
+    assert report.metrics.revenue.current_year_val == 1450.0
+
+
+def test_request_uses_current_model_without_sampling_params(fake_anthropic):
+    _reply(fake_anthropic, json.dumps(VALID_REPORT))
+    SECFinancialAnalystAgent(api_key="sk-test").analyze("Acme", sample_sections("techcorp"))
+    kwargs = fake_anthropic.messages.create.call_args.kwargs
+    assert kwargs["model"] == "claude-sonnet-5-5"
+    assert kwargs["max_tokens"] == 4096
+    assert kwargs["extra_body"] == {"output_config": {"effort": "low"}}
+    assert not {"temperature", "top_p", "top_k"} & kwargs.keys()
+
+
+def test_model_can_be_overridden(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_MODEL", "claude-sonnet-5")
+    assert SECFinancialAnalystAgent(api_key="x").model_name == "claude-sonnet-5"
+
+
+def test_claude_may_return_null_for_unreported_figures(fake_anthropic):
+    data = json.loads(json.dumps(VALID_REPORT))
+    data["metrics"]["eps"].update(current_year_val=None, prior_year_val=None, yoy_change_pct=None, trend="Not Reported")
+    _reply(fake_anthropic, json.dumps(data))
+    report = SECFinancialAnalystAgent(api_key="sk-test").analyze("Acme", sample_sections("techcorp"))
+    assert report.metrics.eps.current_display == "N/A"

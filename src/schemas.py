@@ -4,11 +4,47 @@ from pydantic import BaseModel, Field
 
 class MetricComparison(BaseModel):
     metric_name: str
-    current_year_val: float = Field(..., description="Value in millions USD or absolute EPS")
-    prior_year_val: float = Field(..., description="Value in millions USD or absolute EPS")
-    yoy_change_pct: float = Field(..., description="Percentage change year over year")
+    current_year_val: Optional[float] = Field(default=None, description="Value in millions USD or absolute EPS; None if not reported")
+    prior_year_val: Optional[float] = Field(default=None, description="Value in millions USD or absolute EPS; None if not reported")
+    yoy_change_pct: Optional[float] = Field(default=None, description="Percentage change year over year; None if not computable")
     unit: str = Field(default="$M", description="Unit of measurement ($M, $, %)")
-    trend: str = Field(..., description="Positive, Negative, or Neutral")
+    trend: str = Field(default="Not Reported", description="Positive, Negative, Neutral, or Not Reported")
+
+    @property
+    def reported(self) -> bool:
+        return self.current_year_val is not None and self.prior_year_val is not None
+
+    def _fmt(self, value: Optional[float]) -> str:
+        if value is None:
+            return "N/A"
+        if self.unit == "$M":
+            return f"${value}M"
+        if self.unit == "%":
+            return f"{value}%"
+        return f"{self.unit}{value}"
+
+    @property
+    def current_display(self) -> str:
+        return self._fmt(self.current_year_val)
+
+    @property
+    def prior_display(self) -> str:
+        return self._fmt(self.prior_year_val)
+
+    @property
+    def change_display(self) -> str:
+        if self.yoy_change_pct is None:
+            return "N/A"
+        return f"{'+' if self.yoy_change_pct > 0 else ''}{self.yoy_change_pct}%"
+
+    @property
+    def chart_current(self) -> str:
+        """JavaScript literal for charts: the number, or null when not reported."""
+        return "null" if self.current_year_val is None else str(self.current_year_val)
+
+    @property
+    def chart_prior(self) -> str:
+        return "null" if self.prior_year_val is None else str(self.prior_year_val)
 
 
 class FinancialMetrics(BaseModel):

@@ -34,6 +34,7 @@ def test_techcorp_risk_titles(agent):
     ("techcorp", 0, "Cybersecurity", "HIGH"),
     ("techcorp", 1, "AI & Technology", "MEDIUM"),
     ("techcorp", 2, "Macroeconomic", "MEDIUM"),
+    ("techcorp", 3, "Regulatory", "MEDIUM"),   # "Data Privacy" is regulatory, not a breach
     ("healthplus", 1, "Regulatory", "HIGH"),
     ("healthplus", 0, None, "HIGH"),   # "clinical"/"failure" in body -> HIGH
     ("retailhub", 0, "Macroeconomic", "MEDIUM"),
@@ -47,7 +48,6 @@ def test_risk_classification(agent, name, idx, category, severity):
     assert card.severity == severity
 
 
-@pytest.mark.xfail(strict=True, reason="Known bug: 'ai' substring check matches 'trial' and 'chain'")
 @pytest.mark.parametrize("name, idx, expected", [
     ("healthplus", 0, "General"),        # Clinical Trial Failures
     ("healthplus", 3, "Supply Chain"),   # Supply Chain & Biomanufacturing Disruption
@@ -67,3 +67,19 @@ def test_empty_risk_text_returns_default_cards(agent):
     cards = agent._extract_risk_factors("")
     assert [c.id for c in cards] == ["RISK-01", "RISK-02", "RISK-03"]
     assert cards[0].category == "Cybersecurity"
+
+
+@pytest.mark.parametrize("title, expected", [
+    ("Trial Delays", "General"),
+    ("Chain Store Closures", "General"),
+    ("Retail Competition", "General"),          # "tail" contains "ai"
+    ("AI Model Commoditization", "AI & Technology"),
+    ("Generative AI Disruption", "AI & Technology"),
+    ("Artificial Intelligence Regulation Gaps", "Regulatory"),
+    ("Technological Obsolescence", "AI & Technology"),
+    ("Ransomware Attacks", "Cybersecurity"),
+    ("Data Center Outages", "Cybersecurity"),
+    ("Biotech Patent Expiry", "General"),       # "tech" inside a word does not count
+])
+def test_category_keywords_match_whole_words(agent, title, expected):
+    assert agent._build_risk_card("RISK-01", title, "Body text.").category == expected

@@ -36,3 +36,17 @@ def test_sample_reports(name, score, label):
     assert e.fiscal_year == 2025
     assert len(e.key_growth_drivers) == 3
     assert "FY2026" in e.management_guidance
+
+
+def test_missing_revenue_gives_insufficient_data():
+    agent = SECFinancialAnalystAgent(api_key="")
+    summary = agent._generate_executive_summary("Co", "", agent._extract_financial_metrics("nothing here"))
+    assert (summary.overall_health_score, summary.sentiment_label) == (5.0, "Insufficient Data")
+    assert summary.key_growth_drivers[0] == "Revenue Performance: Revenue not reported in the MD&A excerpt"
+
+
+def test_growth_driver_text_uses_signed_change():
+    agent = SECFinancialAnalystAgent(api_key="")
+    m = agent._extract_financial_metrics("Revenue: $90.0M in FY25 vs $100.0M in FY24")
+    drivers = agent._generate_executive_summary("Co", "", m).key_growth_drivers
+    assert drivers[0] == "Revenue Performance: Total Revenue reached $90.0M (-10.0% YoY)"

@@ -38,10 +38,29 @@ def test_html_dashboard_embeds_chart_data(reports, name):
     assert "{{" not in html, "unrendered Jinja placeholder"
 
 
-@pytest.mark.xfail(strict=True, reason="Known bug: markdown hardcodes '+' so declines render as '+-12.5%'")
 def test_markdown_shows_negative_change_without_plus_sign():
     agent = SECFinancialAnalystAgent(api_key="")
-    metrics = agent._extract_financial_metrics("Operating Expenses: $700.0M in FY25 vs $800.0M in FY24")
     report = agent._analyze_heuristically("Co", "Operating Expenses: $700.0M in FY25 vs $800.0M in FY24", "")
-    assert metrics.operating_expenses.yoy_change_pct == -12.5
-    assert "+-" not in ReportGenerator(report).generate_markdown()
+    md = ReportGenerator(report).generate_markdown()
+    assert "| **Operating Expenses** | $800.0M | $700.0M | `-12.5%` | Negative |" in md
+    assert "+-" not in md
+
+
+def test_unreported_metrics_render_as_not_available():
+    report = SECFinancialAnalystAgent(api_key="")._analyze_heuristically("Co", "Revenue: $50.0M in FY25 vs $40.0M in FY24", "")
+    gen = ReportGenerator(report)
+    md = gen.generate_markdown()
+    assert "| **Revenue** | $40.0M | $50.0M | `+25.0%` | Positive |" in md
+    assert "| **Net Income** | N/A | N/A | `N/A` | Not Reported |" in md
+    html = gen.generate_html()
+    assert "data: [40.0, null, null, null]" in html
+    assert "data: [50.0, null, null, null]" in html
+    assert "Not reported" in html and "badge-neutral" in html
+    assert "None" not in html
+
+
+def test_html_badge_direction():
+    report = SECFinancialAnalystAgent(api_key="")._analyze_heuristically("Co", "Revenue: $90.0M in FY25 vs $100.0M in FY24", "")
+    html = ReportGenerator(report).generate_html()
+    assert "▼ -10.0% YoY" in html
+    assert "badge-negative" in html

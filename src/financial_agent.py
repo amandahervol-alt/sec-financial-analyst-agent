@@ -15,6 +15,21 @@ from src.schemas import (
 
 load_dotenv()
 
+DEFAULT_MODEL = "claude-sonnet-5-5"
+
+
+def _first_text(response) -> str:
+    """Return the first text block; newer models may put thinking blocks first."""
+    for block in getattr(response, "content", None) or []:
+        if getattr(block, "type", None) == "text":
+            return block.text
+    raise ValueError("Claude response contained no text block")
+
+
+def _has_word(text: str, *keywords: str) -> bool:
+    """True if any keyword starts a word in text (so 'tech' matches 'technology' but 'ai' never matches 'trial')."""
+    return any(re.search(rf"(?<![a-z0-9]){re.escape(k)}", text) for k in keywords)
+
 
 class SECFinancialAnalystAgent:
     """
@@ -30,7 +45,7 @@ class SECFinancialAnalystAgent:
             or os.getenv("OPENAI_API_KEY")
             or os.getenv("GEMINI_API_KEY")
         )
-        self.model_name = os.getenv("ANTHROPIC_MODEL", "claude-3-7-sonnet-20250219")
+        self.model_name = os.getenv("ANTHROPIC_MODEL", DEFAULT_MODEL)
 
     def analyze(self, company_name: str, filing_sections: Dict[str, str]) -> FinancialAnalysisReport:
         """
@@ -85,19 +100,22 @@ class SECFinancialAnalystAgent:
             '    {"id": "RISK-01", "title": "...", "category": "Cybersecurity|Technology|Macroeconomic|Regulatory|Operational", "severity": "HIGH|MEDIUM|LOW", "summary": "...", "mitigation_strategy": "..."}\n'
             '  ]\n'
             "}\n"
-            "STRICT RULES: Do not hallucinate numbers. Use exact figures from MD&A. Respond ONLY with valid JSON."
+            "STRICT RULES: Do not hallucinate numbers. Use exact figures from MD&A. "
+            "If a figure is not stated, use null for its values and \"Not Reported\" for its trend. "
+            "Respond ONLY with valid JSON."
         )
 
         user_prompt = f"COMPANY: {company_name}\n\nITEM 1 BUSINESS:\n{business_text[:2000]}\n\nITEM 7 MD&A:\n{mda_text[:4000]}\n\nITEM 1A RISK FACTORS:\n{risk_text[:4000]}"
 
         response = client.messages.create(
             model=self.model_name,
-            max_tokens=3000,
+            max_tokens=4096,
             system=system_prompt,
-            messages=[{"role": "user", "content": user_prompt}]
+            messages=[{"role": "user", "content": user_prompt}],
+            extra_body={"output_config": {"effort": "low"}},
         )
 
-        raw_output = response.content[0].text.strip()
+        raw_output = _first_text(response).strip()
         match = re.search(r'(\{[\s\S]*\})', raw_output)
         json_str = match.group(1) if match else raw_output
         data = json.loads(json_str)
@@ -122,31 +140,29 @@ class SECFinancialAnalystAgent:
         """Extract financial figures and compute YoY changes."""
         rev_curr, rev_prior = self._find_numbers_pair(
             mda_text,
-            r"revenue.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))\s*M?.*?vs.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))",
-            1450.0, 1181.0
+            r"revenue.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))\s*M?.*?vs.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))"
         )
         opex_curr, opex_prior = self._find_numbers_pair(
             mda_text,
-            r"operating expenses.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))\s*M?.*?vs.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))",
-            890.0, 760.0
+            r"operating expenses.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))\s*M?.*?vs.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))"
         )
         net_curr, net_prior = self._find_numbers_pair(
             mda_text,
-            r"net income.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))\s*M?.*?vs.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))",
-            320.0, 215.0
+            r"net income.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))\s*M?.*?vs.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))"
         )
         eps_curr, eps_prior = self._find_numbers_pair(
             mda_text,
-            r"eps.*?\$(?:(\d+(?:\.\d+)?)).*?vs.*?\$(?:(\d+(?:\.\d+)?))",
-            3.85, 2.60
+            r"eps.*?\$(?:(\d+(?:\.\d+)?)).*?vs.*?\$(?:(\d+(?:\.\d+)?))"
         )
         cf_curr, cf_prior = self._find_numbers_pair(
             mda_text,
-            r"cash flow.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))\s*M?.*?vs.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))",
-            410.0, 290.0
+            r"cash flow.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))\s*M?.*?vs.*?\$(?:(\d+(?:,\d+)*(?:\.\d+)?))"
         )
 
-        def make_comp(name: str, curr: float, prior: float, unit: str = "$M") -> MetricComparison:
+        def make_comp(name: str, curr: Optional[float], prior: Optional[float], unit: str = "$M") -> MetricComparison:
+            if curr is None or prior is None:
+                return MetricComparison(metric_name=name, current_year_val=curr, prior_year_val=prior,
+                                        yoy_change_pct=None, unit=unit, trend="Not Reported")
             change = round(((curr - prior) / prior) * 100, 1) if prior else 0.0
             trend = "Positive" if change > 0 else ("Negative" if change < 0 else "Neutral")
             return MetricComparison(
@@ -227,16 +243,19 @@ class SECFinancialAnalystAgent:
 
         category = "General"
         t_low = title_clean.lower()
-        if "cyber" in t_low or "data" in t_low:
+        # Match whole words / word prefixes only; check specific topics before broad ones like "data".
+        if _has_word(t_low, "cyber", "breach", "ransomware"):
             category = "Cybersecurity"
-        elif "ai" in t_low or "tech" in t_low or "platform" in t_low:
-            category = "AI & Technology"
-        elif "macro" in t_low or "exchange" in t_low or "currency" in t_low or "inflation" in t_low:
-            category = "Macroeconomic"
-        elif "regulat" in t_low or "complian" in t_low or "fda" in t_low:
+        elif _has_word(t_low, "regulat", "complian", "fda", "privacy"):
             category = "Regulatory"
-        elif "supply" in t_low or "logistics" in t_low:
+        elif re.search(r"\bai\b", t_low) or _has_word(t_low, "artificial intelligence", "tech", "platform"):
+            category = "AI & Technology"
+        elif _has_word(t_low, "macro", "exchange", "currency", "inflation"):
+            category = "Macroeconomic"
+        elif _has_word(t_low, "supply", "logistics"):
             category = "Supply Chain"
+        elif _has_word(t_low, "data"):
+            category = "Cybersecurity"
 
         return RiskFactorCard(
             id=id_str,
@@ -249,9 +268,13 @@ class SECFinancialAnalystAgent:
 
     def _generate_executive_summary(self, company: str, mda_text: str, metrics: FinancialMetrics) -> ExecutiveSummary:
         rev_pct = metrics.revenue.yoy_change_pct
-        health_score = min(10.0, max(1.0, round(7.0 + (rev_pct / 10.0), 1)))
-
-        sentiment = "Strong Bullish" if rev_pct > 20 else ("Bullish" if rev_pct > 10 else ("Neutral" if rev_pct >= 0 else "Bearish"))
+        if rev_pct is None:
+            # Without reported revenue there is no basis for a growth score.
+            health_score, sentiment = 5.0, "Insufficient Data"
+        else:
+            health_score = min(10.0, max(1.0, round(7.0 + (rev_pct / 10.0), 1)))
+            sentiment = "Strong Bullish" if rev_pct > 20 else ("Bullish" if rev_pct > 10 else ("Neutral" if rev_pct >= 0 else "Bearish"))
+        rev, net, cf = metrics.revenue, metrics.net_income, metrics.operating_cash_flow
 
         return ExecutiveSummary(
             company_name=company,
@@ -259,14 +282,18 @@ class SECFinancialAnalystAgent:
             overall_health_score=health_score,
             sentiment_label=sentiment,
             key_growth_drivers=[
-                f"Revenue Performance: Total Revenue reached ${metrics.revenue.current_year_val}M ({'+' if rev_pct > 0 else ''}{rev_pct}% YoY)",
-                f"Profitability: Net Income at ${metrics.net_income.current_year_val}M ({'+' if metrics.net_income.yoy_change_pct > 0 else ''}{metrics.net_income.yoy_change_pct}% YoY)",
-                f"Cash Generation: Operating cash flow generated ${metrics.operating_cash_flow.current_year_val}M"
+                f"Revenue Performance: Total Revenue reached {rev.current_display} ({rev.change_display} YoY)"
+                if rev.reported else "Revenue Performance: Revenue not reported in the MD&A excerpt",
+                f"Profitability: Net Income at {net.current_display} ({net.change_display} YoY)"
+                if net.reported else "Profitability: Net income not reported in the MD&A excerpt",
+                f"Cash Generation: Operating cash flow generated {cf.current_display}"
+                if cf.reported else "Cash Generation: Operating cash flow not reported in the MD&A excerpt"
             ],
             management_guidance=f"Management projects continued solid performance in FY{metrics.fiscal_year + 1} driven by operational execution and core market expansion."
         )
 
-    def _find_numbers_pair(self, text: str, pattern: str, default_curr: float, default_prior: float):
+    def _find_numbers_pair(self, text: str, pattern: str):
+        """Return (current, prior) from the first match, or (None, None) if the figure is not stated."""
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             try:
@@ -275,4 +302,4 @@ class SECFinancialAnalystAgent:
                 return curr, prior
             except (ValueError, IndexError):
                 pass
-        return default_curr, default_prior
+        return None, None
